@@ -29,14 +29,18 @@ func (u *UrlHandler) Register(e *echo.Group) {
 func (u *UrlHandler) HandleShorten(c echo.Context) error {
 	r := &UrlRequest{}
 	if err := c.Bind(r); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format. Ensure the body is valid JSON.")
+	}
+
+	if r.URL == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "'url' field is required and cannot be empty.")
 	}
 
 	shortURL, err := u.shortener.Shorten(r.URL)
-
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
+
 	return c.JSON(http.StatusCreated, shortURL)
 }
 
