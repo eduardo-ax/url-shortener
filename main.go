@@ -7,10 +7,13 @@ import (
 )
 
 func main() {
-	e := echo.New()
-	v1g := e.Group("/v1")
-	shortner := domain.NewBase62Shortener()
-	h := api.NewUrlHandler(shortner)
-	h.Register(v1g)
-	e.Logger.Fatal(e.Start(":8080"))
+	echoServer := echo.New()
+
+	v1Group := echoServer.Group("/v1")
+
+	shortener := domain.NewBase62Shortener()
+	handler := api.NewUrlHandler(shortener)
+	handler.Register(v1Group)
+
+	echoServer.Logger.Fatal(echoServer.Start(":8080"))
 }
