@@ -13,7 +13,6 @@ type URL struct {
 var ErrInvalidUrlFormat = errors.New("invalid URL format")
 
 func NewUrl(longUrl string) (*URL, error) {
-
 	if u, err := url.ParseRequestURI(longUrl); err != nil || u.Scheme == "" || u.Host == "" {
 		return nil, ErrInvalidUrlFormat
 	}
@@ -34,8 +33,13 @@ func NewBase62Shortener() *Base62Shortener {
 }
 
 func (s *Base62Shortener) Shorten(longUrl string) (URL, error) {
+	newUrl, err := NewUrl(longUrl)
+	if err != nil {
+		return URL{}, err
+	}
+
 	return URL{
-		Url:      longUrl,
+		Url:      newUrl.Url,
 		ShortUrl: "https://short.com.br",
 	}, nil
 }
