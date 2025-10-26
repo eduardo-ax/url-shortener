@@ -23,11 +23,13 @@ func NewUrlHandler(shortener domain.Shortener) *UrlHandler {
 
 func (u *UrlHandler) Register(e *echo.Group) {
 	e.POST("/shorten", u.HandleShorten)
-	e.GET("", u.HandleUrl)
+	e.GET("/:short", u.HandleUrl)
 }
 
 func (u *UrlHandler) HandleShorten(c echo.Context) error {
+	ctx := c.Request().Context()
 	r := &UrlRequest{}
+
 	if err := c.Bind(r); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request format. Ensure the body is valid JSON.")
 	}
@@ -36,14 +38,20 @@ func (u *UrlHandler) HandleShorten(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "'url' field is required and cannot be empty.")
 	}
 
-	shortURL, err := u.shortener.Shorten(r.URL)
+	shortURL, err := u.shortener.Shorten(ctx, r.URL)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
-
 	return c.JSON(http.StatusCreated, shortURL)
 }
 
 func (u *UrlHandler) HandleUrl(c echo.Context) error {
+	ctx := c.Request().Context()
+	short := c.Param("short")
+	url, err := u.shortener.Reverse(ctx, short)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	c.Redirect(http.StatusMovedPermanently, url)
 	return nil
 }
